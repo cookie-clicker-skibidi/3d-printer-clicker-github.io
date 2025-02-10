@@ -4,6 +4,35 @@
     <title>3D Printer Clicker</title>
 
     <link rel="icon" type="image/x-icon" href="images/ender3-v3.png">
+
+    <script>
+      var money = 300;
+        
+      var ender3 = 0;
+      var ender5 = 0;
+      var cr10 = 0;
+      var k1 = 0;
+      var k2 = 0;
+      var halotR6 = 0;
+
+      function buyEnder3(ender3Count, balance, element) {
+        if(balance >= 100) {
+          ender3Count += 1;
+          balance -= 100;
+          document.getElementById(element).innerHTML = "Ender 3s Owned: " + ender3Count;
+          return [ender3Count, balance];
+        } else {
+          return [ender3Count, balance];
+        }
+      }
+
+      function printEnder3(ender3Count, balance) {
+        balance += ender3Count;
+        return balance;
+      }
+
+      setInterval(printEnder3(ender3, money), 1000);
+    </script>
     
     <style>
       #main {
@@ -22,6 +51,12 @@
     <center>
       <div id="content">
         <p>| <a href="https://cookie-clicker-skibidi.github.io/3d-printer-clicker.github.io/history">History</a> | <a href="https://cookie-clicker-skibidi.github.io/3d-printer-clicker.github.io/resources">Resources</a> |</p>
+      </div>
+
+      <div id="content">
+        <button id="ender3" onclick="let [ender3, money] = buyEnder3(ender3, money, 'tracker');">Buy Ender 3</button>
+
+        <p id="tracker">Ender 3s Owned: 0</p>
       </div>
     </center>
   </body>
