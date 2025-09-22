@@ -1,63 +1,190 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>3D Printer Clicker</title>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Belt Drive Calculator</title>
+  <style>
+  body {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem;
+    min-height: 100vh;
+    margin: 0;
+  }
 
-    <link rel="icon" type="image/x-icon" href="images/ender3-v3.png">
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
 
-    <script>
-      var money = 300;
-        
-      var ender3 = 0;
-      var ender5 = 0;
-      var cr10 = 0;
-      var k1 = 0;
-      var k2 = 0;
-      var halotR6 = 0;
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    max-width: 1000px;
+    width: 100%;
+  }
 
-      function buyEnder3(ender3Count, balance, element) {
-        if(balance >= 100) {
-          ender3Count += 1;
-          balance -= 100;
-          document.getElementById(element).innerHTML = "Ender 3s Owned: " + ender3Count;
-          return [ender3Count, balance];
-        } else {
-          return [ender3Count, balance];
-        }
-      }
+  .column {
+    flex: 1;
+    min-width: 300px;
+  }
 
-      function printEnder3(ender3Count, balance) {
-        balance += ender3Count;
-        return balance;
-      }
+  .input-group {
+    margin-bottom: 1.5rem;
+  }
 
-      setInterval(printEnder3(ender3, money), 1000);
-    </script>
-    
-    <style>
-      #main {
-        background-color: lightgray;
-      }
+  label {
+    display: block;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
 
-      #content {
-        background-color: lightblue;
-        border-radius: 25px;
-        margin: 30px;
-      }
-    </style>
-    
-  </head>
-  <body id="main">
-    <center>
-      <div id="content">
-        <p>| <a href="https://cookie-clicker-skibidi.github.io/3d-printer-clicker.github.io/history">History</a> | <a href="https://cookie-clicker-skibidi.github.io/3d-printer-clicker.github.io/resources">Resources</a> |</p>
+  input[type="number"],
+  select {
+    width: 100%;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    background: #111;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 5px;
+  }
+
+  @media (max-aspect-ratio: 3/4) {
+    .container {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .column {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>Belt Drive Calculator</h1>
+
+  <div class="container">
+    <div class="column">
+      <div class="input-group">
+        <label for="pulley1">Pulley 1 number of teeth</label>
+        <input type="number" id="pulley1" value="20">
       </div>
 
-      <div id="content">
-        <button id="ender3" onclick='let [ender3, money] = buyEnder3(ender3, money, "tracker");'>Buy Ender 3</button>
-
-        <p id="tracker">Ender 3s Owned: 0</p>
+      <div class="input-group">
+        <label for="pulley2">Pulley 2 number of teeth</label>
+        <input type="number" id="pulley2" value="40">
       </div>
-    </center>
-  </body>
+
+      <div class="input-group">
+        <label for="pitch">Belt pitch (mm)</label>
+        <select id="pitch">
+          <option value="2">2 mm</option>
+          <option value="3">3 mm</option>
+          <option value="5" selected>5 mm</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="input-group">
+        <label for="centerDistance">Center-to-center distance (mm)</label>
+        <input type="number" id="centerDistance" value="100">
+      </div>
+
+      <div class="input-group">
+        <label for="beltLength">Belt pitch circumference (mm)</label>
+        <input type="number" id="beltLength" value="400">
+      </div>
+
+      <div class="input-group">
+        <label for="beltTeeth">Belt number of teeth</label>
+        <input type="number" id="beltTeeth" value="80">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pulley1 = document.getElementById('pulley1');
+    const pulley2 = document.getElementById('pulley2');
+    const centerDistance = document.getElementById('centerDistance');
+    const beltLength = document.getElementById('beltLength');
+    const beltTeeth = document.getElementById('beltTeeth');
+    const pitch = document.getElementById('pitch');
+
+    let lock = false;
+
+    function getPitch() {
+        return parseFloat(pitch.value);
+    }
+
+    function calculatePitchBeltLength(D, d, CD) {
+        return (2 * CD) + (Math.PI/2 * (D + d)) + (D - d)*(D - d)/(4 * CD);
+    }
+
+    function calculateCenterDistance(D, d, PL) {
+        const b = (2 * PL) - (Math.PI * (D + d));
+        return (b + Math.sqrt(b*b - (8 * (D - d)*(D - d))))/8;
+    }
+
+    function updateBeltLengthFromInputs() {
+        pulley1.value = parseInt(pulley1.value);
+        pulley2.value = parseInt(pulley2.value);
+        if (lock) return;
+        lock = true;
+        const P = getPitch();
+        const D = parseFloat(pulley1.value) * P / Math.PI;
+        const d = parseFloat(pulley2.value) * P / Math.PI;
+        const CD = parseFloat(centerDistance.value);
+        const PL = calculatePitchBeltLength(D, d, CD);
+        beltLength.value = parseFloat(PL.toFixed(3));
+        beltTeeth.value = parseFloat((PL / P).toFixed(3));
+        lock = false;
+    }
+
+    function updateCenterDistanceFromBeltLength() {
+        if (lock) return;
+        lock = true;
+        const P = getPitch();
+        const D = parseFloat(pulley1.value) * P / Math.PI;
+        const d = parseFloat(pulley2.value) * P / Math.PI;
+        const PL = parseFloat(beltLength.value);
+        const CD = calculateCenterDistance(D, d, PL);
+        centerDistance.value = parseFloat(CD.toFixed(3));
+        beltTeeth.value = parseFloat((PL / P).toFixed(3));
+        lock = false;
+    }
+
+    function updateBeltLengthFromTeeth() {
+        beltTeeth.value = parseInt(beltTeeth.value);
+        if (lock) return;
+        lock = true;
+        const teeth = parseFloat(beltTeeth.value);
+        const P = getPitch();
+        const PL = teeth * P;
+        beltLength.value = parseFloat(PL.toFixed(3));
+        lock = false;
+        updateCenterDistanceFromBeltLength();
+    }
+
+    // Event listeners
+    pulley1.addEventListener('input', updateBeltLengthFromInputs);
+    pulley2.addEventListener('input', updateBeltLengthFromInputs);
+    centerDistance.addEventListener('input', updateBeltLengthFromInputs);
+    beltLength.addEventListener('input', updateCenterDistanceFromBeltLength);
+    beltTeeth.addEventListener('input', updateBeltLengthFromTeeth);
+    pitch.addEventListener('change', () => {
+      updateBeltLengthFromInputs();
+    });
+  </script>
+</body>
 </html>
